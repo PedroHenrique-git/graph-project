@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#define INFINITY INT_MAX;
+#define INFINITY INT_MAX
 
 int ** createMatrix(int numberOfRows, int numberOfColumns) {
     int i = 0;
@@ -87,6 +87,12 @@ void createDirectedGraph(int ** matrix, int * nodes ,int isWeighted, int quantit
     printf("\n");    
 }
 
+void initArray(int * array, int size) {
+    for(int i = 0; i < size; i++) {
+        array[i] = 0;
+    }
+}
+
 void showMatrix(int ** matrix, int * nodes, int quantityOfNodes) {
     printf("\n\n\n");
     for(int i = 0; i < quantityOfNodes; i++) { 
@@ -104,14 +110,72 @@ void showMatrix(int ** matrix, int * nodes, int quantityOfNodes) {
     printf("\n\n\n");
 }
 
+void depthFirstSearch(int ** graph, int * nodes, int * visited, int v, int size, int isWeighted) {
+    int i = 0;
+    printf("%d ", nodes[v]);
+    visited[v] = 1;
+    for(i; i < size; i++) { 
+        if(isWeighted) {
+            if( graph[v][i] != INFINITY && visited[i] == 0 ) {
+                depthFirstSearch(graph, nodes, visited, i, size, isWeighted);
+            }
+        } else {
+            if( graph[v][i] == 1 && visited[i] == 0 ) {
+                depthFirstSearch(graph, nodes, visited, i, size, isWeighted);
+            }
+        }
+    }
+}
+
+void topologicalSorting(int ** graph, int * nodes, int * visited, int v, int size, int isWeighted) {}
+
+void breadthFirstSearch(int ** graph, int * nodes, int * visited, int isWeighted, int size, int v) {
+    int queue[size];
+    int start = 0;
+    int end = 0;
+    int node;
+    int aux;
+
+    queue[0] = v;
+    end++;
+    visited[v] = 1;
+
+    while(start != end) {
+        node = nodes[queue[start]];
+        aux = queue[start];
+
+        start++; 
+        printf("%d ", node);
+
+        for(int i = 0; i < size; i++) {
+            if(isWeighted) {
+                if(graph[aux][i] != INFINITY && visited[i] == 0) {
+                    queue[end] = i;
+                    end++;
+                    visited[i] = 1;
+                }
+            } else {
+                if(graph[aux][i] == 1 && visited[i] == 0) {
+                    queue[end] = i;
+                    end++;
+                    visited[i] = 1;
+                }
+            }
+        }
+    }
+
+}
+
 int main()
 {
-    int quantityOfNodes;
-    int nodeValue;
-    int option;
-    int isDirected;
-    int isWeighted;
+    int quantityOfNodes,
+        nodeValue,
+        option,
+        isDirected,
+        isWeighted,
+        searchType;
     int * nodes = NULL;
+    int * visited = NULL;
     int ** adjacencyMatrix = NULL;
 
     do {
@@ -165,6 +229,55 @@ int main()
                 }
 
                 printf("\n");
+            break;
+            case 3:
+
+                if(adjacencyMatrix != NULL) {
+                    printf("\nDigite o tipo de busca que voce deseja executar (6 - para busca em profundidade, 7 - para busca em largura): ");
+                    scanf("%d", &searchType);
+
+                    if(visited != NULL) {
+                        free(visited);
+                        visited = NULL;
+                    }
+                    visited = (int *) malloc(sizeof(int[quantityOfNodes]));
+                    initArray(visited, quantityOfNodes);
+
+                    if(searchType == 6) {
+                        printf("\n");
+                        depthFirstSearch(adjacencyMatrix, nodes, visited, 0, quantityOfNodes, isWeighted);
+                        
+                        for(int i = 0; i < quantityOfNodes; i++) {
+                            if(visited[i] == 0) {
+                                printf("%d ", nodes[i]);
+                            }
+                        }
+
+                        printf("\n");
+                    } 
+
+                    if(searchType == 7) {
+                        printf("\n");
+                        
+                        breadthFirstSearch(adjacencyMatrix, nodes, visited, isWeighted, quantityOfNodes, 0);
+                        
+                        for(int i = 0; i < quantityOfNodes; i++) {
+                            if(visited[i] == 0) {
+                                printf("%d ", nodes[i]);
+                            }
+                        }
+                        
+                        printf("\n");
+                    }
+
+                } else {
+                    printf("\nVoce nao criou seu grafo ainda\n");
+                }
+
+                printf("\n");
+            break;
+            case 4:
+
             break;
         }
     } while(option != 0);
