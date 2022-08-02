@@ -198,7 +198,43 @@ void depthFirstSearch(int ** graph, int * nodes, int * visited, int v, int size,
     }
 }
 
-void topologicalSorting(int ** graph, int * nodes, int * visited, int v, int size, int isWeighted) {}
+int findNodeWithoutDependencies(int ** graph, int size) {
+    int aux[size];
+    initArray(aux, size);
+
+    for(int i = 0; i < size; i++) {
+        for(int j = 0; j < size; j++) {
+            if(graph[j][i] == 0) {
+                aux[i]++;
+            }
+        }  
+    }
+
+    for(int k = 0; k < size; k++) {
+        if(aux[k] == size) {
+            return k;
+        }
+    }
+}
+
+void topologicalSorting(int ** graph, int * nodes, int * visited, int v, int size, int isWeighted, int * order, int * orderIndex) {
+    int i = 0;
+    visited[v] = 1;
+    for(i; i < size; i++) { 
+        if(isWeighted) {
+            if( graph[v][i] != INFINITY && visited[i] == 0 ) {
+                topologicalSorting(graph, nodes, visited, i, size, isWeighted, order, orderIndex);
+            }
+        } else {
+            if( graph[v][i] == 1 && visited[i] == 0 ) {
+                topologicalSorting(graph, nodes, visited, i, size, isWeighted, order, orderIndex);
+            }
+        }
+    }
+
+    order[*orderIndex] = nodes[v];
+    *orderIndex = *orderIndex - 1;
+}
 
 void breadthFirstSearch(int ** graph, int * nodes, int * visited, int isWeighted, int size, int v) {
     int queue[size];
@@ -251,6 +287,8 @@ int main()
     int * nodes = NULL;
     int * visited = NULL;
     int ** adjacencyMatrix = NULL;
+    int * order = NULL;
+
 
     do {
         printf("0 - Encerrar o programa\n1 - Construir o grafo\n2 - Impressao  da  matriz  de  adjacencias\n3 - Impressao  de  percursos\n4 - Ordenacao Topologica\n5 - Caminho  de  distancia  minima\n");
@@ -260,19 +298,19 @@ int main()
 
         switch(option) {
             case 1:
-                printf("\nDigite a quantidade de nos do grafo: ");
-                scanf("%d", &quantityOfNodes);
 
                 if(nodes != NULL) {
                     free(nodes);
-                    nodes = NULL;
                 }
-                nodes = (int *) malloc(sizeof(int[quantityOfNodes]));
 
                 if(adjacencyMatrix != NULL) {
                     freeMatrix(adjacencyMatrix, quantityOfNodes);
-                    adjacencyMatrix = NULL;
                 }
+
+                printf("\nDigite a quantidade de nos do grafo: ");
+                scanf("%d", &quantityOfNodes);
+
+                nodes = (int *) malloc(sizeof(int[quantityOfNodes]));
 
                 adjacencyMatrix = createMatrix(quantityOfNodes, quantityOfNodes);
 
@@ -325,15 +363,15 @@ int main()
                 printf("\n");
             break;
             case 3:
+                if(visited != NULL) {
+                    free(visited);
+                }
 
                 if(adjacencyMatrix != NULL) {
+                    
                     printf("\nDigite o tipo de busca que voce deseja executar (6 - para busca em profundidade, 7 - para busca em largura): ");
                     scanf("%d", &searchType);
 
-                    if(visited != NULL) {
-                        free(visited);
-                        visited = NULL;
-                    }
                     visited = (int *) malloc(sizeof(int[quantityOfNodes]));
                     initArray(visited, quantityOfNodes);
 
@@ -346,7 +384,7 @@ int main()
                                 printf("%d ", nodes[i]);
                             }
                         }
-
+                        
                         printf("\n");
                     } 
 
@@ -360,7 +398,7 @@ int main()
                                 printf("%d ", nodes[i]);
                             }
                         }
-                        
+
                         printf("\n");
                     }
 
@@ -371,8 +409,57 @@ int main()
                 printf("\n");
             break;
             case 4:
+                if(visited != NULL) {
+                    free(visited);
+                }
 
+                if(order != NULL) {
+                    free(order);
+                }
+
+                if(adjacencyMatrix != NULL) {
+                    if(isDirected) {       
+                        int startIndex = findNodeWithoutDependencies(adjacencyMatrix, quantityOfNodes);
+                        int orderIndex = quantityOfNodes - 1;
+                        visited = (int *) malloc(sizeof(int[quantityOfNodes]));
+                        order = (int *) malloc(sizeof(int[quantityOfNodes]));
+
+                        for(int i = 0; i < quantityOfNodes; i++) {
+                            order[i] = -1;
+                        }
+
+                        initArray(visited, quantityOfNodes);
+                        topologicalSorting(adjacencyMatrix, nodes, visited, startIndex, quantityOfNodes, isWeighted, order, &orderIndex);
+
+                        printf("\n");
+
+                        for(int i = 0; i < quantityOfNodes; i++) {
+                            if(visited[i] == 0) {
+                                printf("%d ", nodes[i]);
+                            }
+                        }
+
+                        for(int i = 0; i < quantityOfNodes; i++) {
+                            if(order[i] != -1) {
+                                printf("%d ", order[i]);
+                            }
+                        }
+                        
+                        printf("\n");
+
+                    } else {
+                        printf("\nO grafo precisa ser direcionado para realizar a ordenacao topologica\n");
+                    }
+                } else {
+                    printf("\nVoce nao criou seu grafo ainda\n");
+                }
+
+                printf("\n");
             break;
         }
     } while(option != 0);
+
+    free(nodes);
+    free(adjacencyMatrix);
+    freeMatrix(adjacencyMatrix, quantityOfNodes);
 }
