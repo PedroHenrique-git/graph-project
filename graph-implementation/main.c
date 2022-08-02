@@ -344,6 +344,13 @@ int main()
                 printf("\n");
             break;
             case 5:
+                if(adjacencyMatrix == NULL) {
+                    printf("\nVoce nao criou seu grafo ainda\n");
+                    printf("\n");
+                    
+                    break;
+                }
+
                 if(!isValidToApplyDijkstra(adjacencyMatrix, quantityOfNodes)) {
                     printf("\nGrafo invalido para aplicar dijkstra!\n\n");
                     break;
