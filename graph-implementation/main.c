@@ -14,7 +14,78 @@ int ** createMatrix(int numberOfRows, int numberOfColumns) {
     return matrix;
 }
 
-void freeMatrix(int ** matrix, int numberOfRows) { 
+int isValidToApplyDijkstra(int ** graph, int numbersOfNode) {
+    for(int i = 0; i < numbersOfNode; i++) {
+        for(int j = 0; i < numbersOfNode; j++) {
+            if((i == j && graph[i][j] != INFINITY) || graph[i][j] < 0) return 0;
+        }
+    }
+
+    return 1;
+}
+
+int findIndex(int item, int items[], int numberOfItems) {
+    for(int i = 0; i < numberOfItems; i++)
+        if(items[i] == item) return i;
+
+    return -1;
+}
+
+int minDistance(int distance[], int visited[], int numbersOfNodes) {
+    int min = INFINITY;
+    int min_index = INFINITY;
+
+    for(int i = 0; i < numbersOfNodes; i++) {
+        if(!visited[i] && distance[i] <= min) {
+            min = distance[i];
+            min_index = i;
+        }
+    }
+
+    return min_index;
+}
+
+void dijkstra(int ** graph, int src, int end, int nodes[], int numbersOfNode) {
+    int distance[numbersOfNode];
+    int visited[numbersOfNode];
+    int path[numbersOfNode];
+
+    int indexStartNode = findIndex(src, nodes, numbersOfNode);
+    int indexEndNode = findIndex(end, nodes, numbersOfNode);
+
+    for(int i = 0; i < numbersOfNode; i++) {
+        distance[i] = INFINITY;
+        path[i] = INFINITY;
+        visited[i] = 0;
+    }
+
+    path[indexStartNode] = src;
+    path[indexEndNode] = end;
+    distance[indexStartNode] = 0;
+
+    for(int i = 0; i < numbersOfNode - 1; i++) {
+        int md = minDistance(distance, visited, numbersOfNode);
+        visited[md] = 1;
+
+        for(int j = 0; j < numbersOfNode; j++) {
+            if(!visited[j] && graph[md][j] != INFINITY && distance[md] != INFINITY && distance[md] + graph[md][j] < distance[j]) {
+                distance[j] = distance[md] + graph[md][j];
+                path[md] = nodes[md];
+            }
+        }
+    }
+
+    printf("caminho: ");
+
+    for(int i = 0; i < numbersOfNode; i++) {
+        if(path[i] != INFINITY)
+            (i == (numbersOfNode - 1)) ? printf("%d", path[i]) : printf("%d,", path[i]);
+    }
+
+    printf("\n");
+}
+
+void freeMatrix(int ** matrix, int numberOfRows) {
     for(int i = 0; i < numberOfRows; i++)
 		free(matrix[i]);
 	free(matrix);
@@ -22,11 +93,11 @@ void freeMatrix(int ** matrix, int numberOfRows) {
 
 void createUnDirectedGraph(int ** matrix, int * nodes, int isWeighted, int quantityOfNodes) {
     int relation, weight;
-    
+
     for(int i = 0; i < quantityOfNodes; i++) {
-        printf("\nDigite os nos adjacentes ao no %d (nem todos os valores serão perguntados) \n\n", nodes[i]);
+        printf("\nDigite os nos adjacentes ao no %d (nem todos os valores serao perguntados) \n\n", nodes[i]);
         for(int j = 0; j < quantityOfNodes; j++) {
-            
+
             if(j >= i) {
                 printf("\nO no %d esta conectado com o no %d? (0 - Nao, 1 - Sim): ", nodes[i], nodes[j]);
                 scanf("%d", &relation);
@@ -51,21 +122,21 @@ void createUnDirectedGraph(int ** matrix, int * nodes, int isWeighted, int quant
                     }
                 }
             }
-        } 
+        }
     }
 
-    printf("\n"); 
+    printf("\n");
 }
 
 void createDirectedGraph(int ** matrix, int * nodes ,int isWeighted, int quantityOfNodes) {
     int relation, weight;
-    
+
     for(int i = 0; i < quantityOfNodes; i++) {
         printf("\nDigite os nos adjacentes ao no %d\n\n", nodes[i]);
         for(int j = 0; j < quantityOfNodes; j++) {
             printf("\nO no %d esta conectado com o no %d? (0 - Nao, 1 - Sim): ", nodes[i], nodes[j]);
             scanf("%d", &relation);
-            
+
             if(isWeighted) {
                 if(relation) {
                     printf("\nDigite o peso da aresta entre o no %d e o no %d: ",  nodes[i], nodes[j]);
@@ -81,10 +152,10 @@ void createDirectedGraph(int ** matrix, int * nodes ,int isWeighted, int quantit
                     matrix[i][j] = 0;
                 }
             }
-        } 
+        }
     }
 
-    printf("\n");    
+    printf("\n");
 }
 
 void initArray(int * array, int size) {
@@ -95,17 +166,17 @@ void initArray(int * array, int size) {
 
 void showMatrix(int ** matrix, int * nodes, int quantityOfNodes) {
     printf("\n\n\n");
-    for(int i = 0; i < quantityOfNodes; i++) { 
+    for(int i = 0; i < quantityOfNodes; i++) {
         printf("\t%d", nodes[i]);
     }
     printf("\n\n\n");
-    for(int i = 0; i < quantityOfNodes; i++) { 
+    for(int i = 0; i < quantityOfNodes; i++) {
         printf("%d", nodes[i]);
 
-        for(int j = 0; j < quantityOfNodes; j++) { 
+        for(int j = 0; j < quantityOfNodes; j++) {
             printf("\t%d ", matrix[i][j]);
-        }    
-        printf("\n"); 
+        }
+        printf("\n");
     }
     printf("\n\n\n");
 }
@@ -204,12 +275,15 @@ void breadthFirstSearch(int ** graph, int * nodes, int * visited, int isWeighted
 
 int main()
 {
-    int quantityOfNodes,
+    int startNode,
+        endNode,
+        quantityOfNodes,
         nodeValue,
         option,
         isDirected,
         isWeighted,
         searchType;
+        
     int * nodes = NULL;
     int * visited = NULL;
     int ** adjacencyMatrix = NULL;
@@ -237,6 +311,7 @@ int main()
                 scanf("%d", &quantityOfNodes);
 
                 nodes = (int *) malloc(sizeof(int[quantityOfNodes]));
+
                 adjacencyMatrix = createMatrix(quantityOfNodes, quantityOfNodes);
 
                 for(int i = 0; i < quantityOfNodes; i++) {
@@ -246,7 +321,7 @@ int main()
 
                 printf("\nO grafo vai ser direcionado? (0 - Nao, 1 - Sim): ");
                 scanf("%d", &isDirected);
-                
+
                 printf("\nO grafo vai ser ponderado? (0 - Nao, 1 - Sim): ");
                 scanf("%d", &isWeighted);
 
@@ -255,7 +330,7 @@ int main()
                 } else {
                     createUnDirectedGraph(adjacencyMatrix, nodes, isWeighted, quantityOfNodes);
                 }
-        
+
                 printf("\n");
             break;
             case 2:
@@ -265,6 +340,25 @@ int main()
                 } else {
                     printf("\nVoce nao criou seu grafo ainda\n");
                 }
+
+                printf("\n");
+            break;
+            case 5:
+                if(!isValidToApplyDijkstra(adjacencyMatrix, quantityOfNodes)) {
+                    printf("\nGrafo invalido para aplicar dijkstra!\n\n");
+                    break;
+                }
+
+                printf("\nDigite o no inicial da busca: ");
+                scanf("%d", &startNode);
+
+                printf("Digite o no final da busca: ");
+                scanf("%d", &endNode);
+
+
+                printf("\n");
+
+                dijkstra(adjacencyMatrix, startNode, endNode, nodes, quantityOfNodes);
 
                 printf("\n");
             break;
